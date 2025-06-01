@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import router from '../router'
+import { useStationStore } from './station'
 
 const API_URL = 'http://localhost:3001/api'
 
@@ -112,6 +113,10 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.token = null
       localStorage.removeItem('token')
+      // Clear stations when logging out
+      const stationStore = useStationStore()
+      stationStore.stations = []
+      stationStore.currentStation = null
       router.push('/login')
     },
   },

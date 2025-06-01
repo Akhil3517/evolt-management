@@ -105,10 +105,10 @@ router.post('/', auth, validateStation, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     const { status, connectorType, minPower } = req.query;
-    const query = {};
+    const query = { createdBy: req.user._id };
 
     if (status) query.status = status;
     if (connectorType) query.connectorType = connectorType;
