@@ -3,7 +3,7 @@ import axios from 'axios'
 import router from '../router'
 import { useStationStore } from './station'
 
-const API_URL = 'http://localhost:3001/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
