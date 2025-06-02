@@ -8,6 +8,10 @@ const API_URL = import.meta.env.VITE_API_URL?.startsWith('http')
   ? import.meta.env.VITE_API_URL 
   : `https://${import.meta.env.VITE_API_URL}`
 
+// Configure axios defaults
+axios.defaults.withCredentials = true
+axios.defaults.headers.common['Content-Type'] = 'application/json'
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
