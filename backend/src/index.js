@@ -66,15 +66,7 @@ const swaggerOptions = {
     info: {
       title: 'EV Charging Station API',
       version: '1.0.0',
-      description: 'API documentation for EV Charging Station Management System',
-      contact: {
-        name: 'API Support',
-        email: 'support@evolt.com'
-      },
-      license: {
-        name: 'MIT',
-        url: 'https://opensource.org/licenses/MIT'
-      }
+      description: 'API documentation for EV Charging Station Management System'
     },
     servers: [
       {
