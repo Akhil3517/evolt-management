@@ -6,6 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL?.startsWith('http')
   ? import.meta.env.VITE_API_URL 
   : `https://${import.meta.env.VITE_API_URL}`
 
+console.log('API URL:', API_URL); // Debug log
+
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
@@ -13,6 +15,34 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 })
+
+// Add request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    console.log('Request:', config.method.toUpperCase(), config.url, config.headers)
+    return config
+  },
+  (error) => {
+    console.error('Request Error:', error)
+    return Promise.reject(error)
+  }
+)
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log('Response:', response.status, response.config.url)
+    return response
+  },
+  (error) => {
+    console.error('Response Error:', error.response?.status, error.config?.url, error.response?.data)
+    return Promise.reject(error)
+  }
+)
 
 export const useStationStore = defineStore('station', {
   state: () => ({
@@ -73,11 +103,7 @@ export const useStationStore = defineStore('station', {
       this.loading = true
       this.error = null
       try {
-        const response = await api.post('/api/stations', stationData, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
+        const response = await api.post('/api/stations', stationData)
         this.stations.push(response.data)
         return { success: true, data: response.data }
       } catch (error) {
@@ -95,11 +121,7 @@ export const useStationStore = defineStore('station', {
       this.loading = true
       this.error = null
       try {
-        const response = await api.put(`/api/stations/${id}`, stationData, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
+        const response = await api.put(`/api/stations/${id}`, stationData)
         const index = this.stations.findIndex(station => station._id === id)
         if (index !== -1) {
           this.stations[index] = response.data
@@ -123,11 +145,7 @@ export const useStationStore = defineStore('station', {
       this.loading = true
       this.error = null
       try {
-        await api.delete(`/api/stations/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
+        await api.delete(`/api/stations/${id}`)
         this.stations = this.stations.filter(station => station._id !== id)
         if (this.currentStation?._id === id) {
           this.currentStation = null

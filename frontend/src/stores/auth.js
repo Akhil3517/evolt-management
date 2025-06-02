@@ -10,9 +10,6 @@ const API_URL = import.meta.env.VITE_API_URL?.startsWith('http')
 
 console.log('API URL:', API_URL); // Debug log
 
-// Configure axios defaults
-axios.defaults.headers.common['Content-Type'] = 'application/json'
-
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
@@ -21,29 +18,33 @@ const api = axios.create({
   }
 })
 
-// Add request interceptor for debugging
+// Add request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    console.log('Request:', config.method.toUpperCase(), config.url);
-    return config;
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    console.log('Request:', config.method.toUpperCase(), config.url, config.headers)
+    return config
   },
   (error) => {
-    console.error('Request Error:', error);
-    return Promise.reject(error);
+    console.error('Request Error:', error)
+    return Promise.reject(error)
   }
-);
+)
 
 // Add response interceptor for debugging
 api.interceptors.response.use(
   (response) => {
-    console.log('Response:', response.status, response.config.url);
-    return response;
+    console.log('Response:', response.status, response.config.url)
+    return response
   },
   (error) => {
-    console.error('Response Error:', error.response?.status, error.config?.url);
-    return Promise.reject(error);
+    console.error('Response Error:', error.response?.status, error.config?.url, error.response?.data)
+    return Promise.reject(error)
   }
-);
+)
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -103,7 +104,7 @@ export const useAuthStore = defineStore('auth', {
           }
         }
 
-        const response = await axios.post(`${API_URL}/api/auth/register`, {
+        const response = await api.post('/api/auth/register', {
           name,
           email,
           password,
@@ -112,6 +113,9 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.data.token
         this.user = response.data.user
         localStorage.setItem('token', response.data.token)
+        
+        // Set the token in axios headers for future requests
+        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`
 
         return { success: true }
       } catch (error) {
@@ -134,11 +138,7 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchUser() {
       try {
-        const response = await axios.get(`${API_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        })
+        const response = await api.get('/api/auth/me')
 
         this.user = response.data.user
         return { success: true }

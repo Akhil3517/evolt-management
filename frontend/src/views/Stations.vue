@@ -400,7 +400,7 @@ const handleSubmit = async () => {
         return
       }
       toast.success('Station created successfully!')
-      const newStation = result.station || form.value
+      const newStation = result.data
       confirmedCoordinates.value = {
         latitude: newStation.location.latitude,
         longitude: newStation.location.longitude
@@ -409,6 +409,7 @@ const handleSubmit = async () => {
     closeModal()
     await fetchStations()
   } catch (error) {
+    console.error('Error in handleSubmit:', error)
     toast.error('An error occurred while saving the station')
   }
 }
@@ -418,31 +419,32 @@ const handleDelete = async () => {
     try {
       const result = await stationStore.deleteStation(stationToDelete.value._id)
       if (result.success) {
-        toast.success('Station deleted successfully!', {
-          toastClassName: "delete-toast",
-          bodyClassName: "delete-toast-body",
-          icon: "❌"
-        })
+        toast.success('Station deleted successfully!')
       } else {
-        toast.error(result.error || 'Failed to delete station', {
-          toastClassName: "delete-toast",
-          bodyClassName: "delete-toast-body"
-        })
+        toast.error(result.error || 'Failed to delete station')
       }
       showDeleteModal.value = false
       stationToDelete.value = null
-      fetchStations()
+      await fetchStations()
     } catch (error) {
-      toast.error('An error occurred while deleting the station', {
-        toastClassName: "delete-toast",
-        bodyClassName: "delete-toast-body"
-      })
+      console.error('Error in handleDelete:', error)
+      toast.error('An error occurred while deleting the station')
     }
   }
 }
 
 const fetchStations = async () => {
-  await stationStore.fetchStations(filters.value)
+  try {
+    console.log('Fetching stations with filters:', filters.value)
+    const result = await stationStore.fetchStations(filters.value)
+    if (!result.success) {
+      console.error('Failed to fetch stations:', result.error)
+      toast.error(result.error || 'Failed to fetch stations')
+    }
+  } catch (error) {
+    console.error('Error in fetchStations:', error)
+    toast.error('An error occurred while fetching stations')
+  }
 }
 
 // Handle map add station
