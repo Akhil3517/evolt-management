@@ -14,7 +14,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-gray-100">
-    <nav v-if="authStore.isAuthenticated" class="bg-white shadow-sm">
+    <nav v-if="authStore.isAuthenticated" class="bg-white shadow-sm fixed w-full top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex">
@@ -92,7 +92,7 @@ onMounted(async () => {
       </div>
 
       <!-- Mobile menu -->
-      <div v-if="isMobileMenuOpen" class="sm:hidden">
+      <div v-if="isMobileMenuOpen" class="sm:hidden absolute w-full bg-white shadow-lg">
         <div class="pt-2 pb-3 space-y-1">
           <router-link
             to="/"
@@ -135,7 +135,7 @@ onMounted(async () => {
       </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 mt-16">
       <router-view></router-view>
     </main>
   </div>
@@ -173,6 +173,20 @@ onMounted(async () => {
   .container {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+  
+  /* Ensure mobile menu is above other content */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+  }
+  
+  /* Add shadow to mobile menu when open */
+  nav .sm\:hidden {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 }
 </style>
