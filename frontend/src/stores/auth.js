@@ -59,7 +59,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(email, password) {
       try {
-        const response = await api.post('/auth/login', {
+        const response = await api.post('/api/auth/login', {
           email,
           password,
         })
@@ -82,7 +82,6 @@ export const useAuthStore = defineStore('auth', {
 
     async register(name, email, password) {
       try {
-
         if (!name || !email || !password) {
           return {
             success: false,
@@ -104,7 +103,7 @@ export const useAuthStore = defineStore('auth', {
           }
         }
 
-        const response = await axios.post(`${API_URL}/auth/register`, {
+        const response = await axios.post(`${API_URL}/api/auth/register`, {
           name,
           email,
           password,
@@ -135,7 +134,7 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchUser() {
       try {
-        const response = await axios.get(`${API_URL}/auth/me`, {
+        const response = await axios.get(`${API_URL}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${this.token}`,
           },
