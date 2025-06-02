@@ -137,18 +137,24 @@ router.post(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
       }
 
       const { email, password } = req.body;
+      console.log('Login attempt for email:', email);
 
       const user = await User.findOne({ email });
       if (!user) {
+        console.log('User not found for email:', email);
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
       const isMatch = await user.comparePassword(password);
+      console.log('Password match result:', isMatch);
+      
       if (!isMatch) {
+        console.log('Password mismatch for user:', email);
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
@@ -157,6 +163,8 @@ router.post(
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
+
+      console.log('Login successful for user:', email);
 
       res.json({
         token,
@@ -168,6 +176,7 @@ router.post(
         },
       });
     } catch (error) {
+      console.error('Login error:', error);
       res.status(500).json({ message: 'Error logging in' });
     }
   }
