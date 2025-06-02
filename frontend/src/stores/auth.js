@@ -8,18 +8,42 @@ const API_URL = import.meta.env.VITE_API_URL?.startsWith('http')
   ? import.meta.env.VITE_API_URL 
   : `https://${import.meta.env.VITE_API_URL}`
 
+console.log('API URL:', API_URL); // Debug log
+
 // Configure axios defaults
-axios.defaults.withCredentials = true
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
 })
+
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log('Request:', config.method.toUpperCase(), config.url);
+    return config;
+  },
+  (error) => {
+    console.error('Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log('Response:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('Response Error:', error.response?.status, error.config?.url);
+    return Promise.reject(error);
+  }
+);
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
