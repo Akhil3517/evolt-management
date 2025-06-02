@@ -488,8 +488,32 @@ watch(viewMode, async (newVal) => {
 });
 
 // Lifecycle
-onMounted(fetchStations)
+onMounted(async () => {
+  try {
+    console.log('Fetching stations...')
+    const result = await stationStore.fetchStations(filters.value)
+    if (!result.success) {
+      console.error('Failed to fetch stations:', result.error)
+      toast.error(result.error || 'Failed to fetch stations')
+    }
+  } catch (error) {
+    console.error('Error in onMounted:', error)
+    toast.error('An error occurred while fetching stations')
+  }
+})
 
-// Watch filters for changes
-watch(filters, fetchStations, { deep: true })
+// Watch for filter changes
+watch(filters, async (newFilters) => {
+  try {
+    console.log('Filters changed, fetching stations with:', newFilters)
+    const result = await stationStore.fetchStations(newFilters)
+    if (!result.success) {
+      console.error('Failed to fetch stations with filters:', result.error)
+      toast.error(result.error || 'Failed to fetch stations')
+    }
+  } catch (error) {
+    console.error('Error in filter watch:', error)
+    toast.error('An error occurred while fetching stations')
+  }
+}, { deep: true })
 </script> 
