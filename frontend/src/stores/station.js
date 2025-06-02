@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+// Ensure the API URL is properly formatted with https://
+const API_URL = import.meta.env.VITE_API_URL?.startsWith('http') 
+  ? import.meta.env.VITE_API_URL 
+  : `https://${import.meta.env.VITE_API_URL}`
 
 export const useStationStore = defineStore('station', {
   state: () => ({
