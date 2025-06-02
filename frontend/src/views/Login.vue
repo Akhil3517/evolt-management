@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
     <div class="max-w-md w-full space-y-8">
       <div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -18,8 +18,7 @@
             <label for="email" class="sr-only">Email address</label>
             <input
               id="email"
-              v-model="email"
-              name="email"
+              v-model="form.email"
               type="email"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
@@ -30,8 +29,7 @@
             <label for="password" class="sr-only">Password</label>
             <input
               id="password"
-              v-model="password"
-              name="password"
+              v-model="form.password"
               type="password"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
@@ -40,11 +38,31 @@
           </div>
         </div>
 
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input
+              id="remember-me"
+              v-model="form.rememberMe"
+              type="checkbox"
+              class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            />
+            <label for="remember-me" class="ml-2 block text-sm text-gray-900">
+              Remember me
+            </label>
+          </div>
+
+          <div class="text-sm">
+            <a href="#" class="font-medium text-primary-600 hover:text-primary-500">
+              Forgot your password?
+            </a>
+          </div>
+        </div>
+
         <div>
           <button
             type="submit"
             :disabled="loading"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="absolute left-0 inset-y-0 flex items-center pl-3">
               <svg
@@ -64,10 +82,6 @@
             {{ loading ? 'Signing in...' : 'Sign in' }}
           </button>
         </div>
-
-        <div v-if="error" class="text-red-600 text-sm text-center">
-          {{ error }}
-        </div>
       </form>
     </div>
   </div>
@@ -83,22 +97,41 @@ const router = useRouter()
 const authStore = useAuthStore()
 const toast = useToast()
 
-const email = ref('')
-const password = ref('')
+const form = ref({
+  email: '',
+  password: '',
+  rememberMe: false
+})
+
 const loading = ref(false)
-const error = ref('')
 
 const handleSubmit = async () => {
   try {
-    const result = await authStore.login(email.value, password.value)
-    if (result.success) {
-      toast.success('Login successful!')
-      router.push('/')
-    } else {
-      toast.error(result.error || 'Login failed')
-    }
+    loading.value = true
+    await authStore.login(form.value)
+    toast.success('Successfully logged in!')
+    router.push('/')
   } catch (error) {
-    toast.error('An error occurred during login')
+    toast.error(error.message || 'Failed to login')
+  } finally {
+    loading.value = false
   }
 }
-</script> 
+</script>
+
+<style scoped>
+/* Add responsive styles */
+@media (max-width: 640px) {
+  .min-h-screen {
+    padding: 1rem;
+  }
+  
+  .max-w-md {
+    width: 100%;
+  }
+  
+  .space-y-8 {
+    margin-top: 2rem;
+  }
+}
+</style> 

@@ -1,315 +1,261 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <!-- Header with Add Station button and View Toggle -->
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Charging Stations</h1>
-      <div class="flex items-center space-x-4">
-        <div class="flex rounded-md shadow-sm">
-          <button
-            @click="viewMode = 'table'"
-            :class="[
-              'px-4 py-2 text-sm font-medium rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500',
-              viewMode === 'table'
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
-            ]"
-          >
-            Table
-          </button>
-          <button
-            @click="viewMode = 'map'"
-            :class="[
-              'px-4 py-2 text-sm font-medium rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary-500',
-              viewMode === 'map'
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
-            ]"
-          >
-            Map
-          </button>
-        </div>
+  <div class="space-y-6">
+    <div class="sm:flex sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900">Charging Stations</h1>
+        <p class="mt-2 text-sm text-gray-700">
+          Manage and monitor your charging stations
+        </p>
+      </div>
+      <div class="mt-4 sm:mt-0">
         <button
-          @click="startSelectingCoordinates"
-          class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          @click="openCreateModal"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
+          <PlusIcon class="-ml-1 mr-2 h-5 w-5" />
           Add Station
         </button>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white p-4 rounded-lg shadow mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white shadow rounded-lg p-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
           <select
+            id="status"
             v-model="filters.status"
-            class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
           >
             <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="available">Available</option>
+            <option value="in_use">In Use</option>
+            <option value="maintenance">Maintenance</option>
           </select>
         </div>
+
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Connector Type</label>
+          <label for="connectorType" class="block text-sm font-medium text-gray-700">Connector Type</label>
           <select
+            id="connectorType"
             v-model="filters.connectorType"
-            class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
           >
             <option value="">All</option>
-            <option value="Type 1">Type 1</option>
             <option value="Type 2">Type 2</option>
             <option value="CCS">CCS</option>
             <option value="CHAdeMO">CHAdeMO</option>
-            <option value="Tesla">Tesla</option>
           </select>
         </div>
+
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Min Power Output (kW)</label>
+          <label for="minPower" class="block text-sm font-medium text-gray-700">Min Power (kW)</label>
           <input
-            v-model.number="filters.minPower"
             type="number"
+            id="minPower"
+            v-model="filters.minPower"
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
             min="0"
-            class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            step="1"
           />
         </div>
+
+        <div class="flex items-end">
+          <button
+            @click="resetFilters"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            Reset Filters
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="stationStore.loading" class="flex justify-center items-center py-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+    <!-- Stations Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Station
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Connector
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Power
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Location
+              </th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="station in filteredStations" :key="station._id">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ station.name }}
+                      <span v-if="station.createdBy" class="text-xs text-gray-500 ml-2">
+                        by {{ station.createdBy.name }}
+                      </span>
+                    </div>
+                    <div class="text-sm text-gray-500">{{ station.description }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  :class="{
+                    'bg-green-100 text-green-800': station.status === 'available',
+                    'bg-yellow-100 text-yellow-800': station.status === 'in_use',
+                    'bg-red-100 text-red-800': station.status === 'maintenance'
+                  }"
+                >
+                  {{ station.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ station.connectorType }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ station.powerOutput }} kW
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ station.location }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div v-if="station.canModify" class="flex space-x-2 justify-end">
+                  <button
+                    @click="openEditModal(station)"
+                    class="text-primary-600 hover:text-primary-900"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    @click="confirmDelete(station)"
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
+                </div>
+                <span v-else class="text-gray-500">View only</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- Error Message -->
-    <div v-else-if="stationStore.error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6">
-      {{ stationStore.error }}
-    </div>
-
-    <!-- Table View -->
-    <div v-show="viewMode === 'table'" class="bg-white shadow rounded-lg overflow-hidden">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Connector Type</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Power Output</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="station in stationStore.stations" :key="station._id">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-              {{ station.name }}
-              <span class="text-xs text-gray-500 ml-2">by {{ station.createdBy?.name || 'Unknown' }}</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <span
-                :class="{
-                  'px-2 inline-flex text-xs leading-5 font-semibold rounded-full': true,
-                  'bg-green-100 text-green-800': station.status === 'active',
-                  'bg-red-100 text-red-800': station.status === 'inactive',
-                }"
-              >
-                {{ station.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ station.connectorType }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ station.powerOutput }} kW</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ station.location.latitude.toFixed(4) }}, {{ station.location.longitude.toFixed(4) }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button
-                v-if="station.canModify"
-                @click="openEditModal(station)"
-                class="text-primary-600 hover:text-primary-900 mr-4"
-              >
-                Edit
-              </button>
-              <button
-                v-if="station.canModify"
-                @click="confirmDelete(station)"
-                class="text-red-600 hover:text-red-900"
-              >
-                Delete
-              </button>
-              <span v-else class="text-gray-400">View only</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Map View -->
-    <div v-if="viewMode === 'map'" style="width:100%; height:600px; min-height:600px;">
-      <StationMap
-        ref="mapRef"
-        :center="{ lat: 28.6139, lng: 77.2090 }"
-        :zoom="13"
-        @coordinates-selected="handleCoordinatesSelected"
-        :confirmed-coordinates="confirmedCoordinates"
-      />
-    </div>
-
-    <!-- Add Station Map Overlay for Selecting Coordinates -->
-    <div v-if="selectingCoordinates" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex flex-col items-center justify-center z-[9999]">
-      <div class="bg-white rounded-lg p-6 max-w-2xl w-full flex flex-col items-center">
-        <h2 class="text-xl font-bold mb-4">Select coordinates for station</h2>
-        <div style="width:100%; height:400px; min-width:300px; min-height:300px;">
-          <StationMap
-            :center="{ lat: 28.6139, lng: 77.2090 }"
-            :zoom="13"
-            @coordinates-selected="handleCoordinatesSelected"
-            :confirmed-coordinates="null"
+    <!-- Create/Edit Modal -->
+    <Modal
+      v-if="showModal"
+      :title="isEditing ? 'Edit Station' : 'Add Station'"
+      @close="closeModal"
+    >
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+          <input
+            type="text"
+            id="name"
+            v-model="form.name"
+            required
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
           />
         </div>
-        <button @click="cancelSelectingCoordinates" class="mt-4 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-          Cancel
-        </button>
-      </div>
-    </div>
 
-    <!-- Confirm Coordinates Modal (for map overlay) -->
-    <div v-if="showConfirmCoords && selectingCoordinates" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-[10000]">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full">
-        <h2 class="text-xl font-bold mb-4">Confirm Coordinates</h2>
-        <p class="mb-4">Use these coordinates for the new station?</p>
-        <p class="mb-4 font-mono text-blue-700">
-          Lat: {{ pendingCoordinates.latitude }}<br>
-          Lng: {{ pendingCoordinates.longitude }}
-        </p>
-        <div class="flex justify-end space-x-3">
-          <button
-            @click="cancelCoordinates"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-          >Cancel</button>
-          <button
-            @click="confirmCoordinates"
-            class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-          >Yes, Use These</button>
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            id="description"
+            v-model="form.description"
+            rows="3"
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+          ></textarea>
         </div>
-      </div>
-    </div>
 
-    <!-- Station Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-[9999]">
-      <div class="bg-white bg-opacity-100 rounded-lg p-6 max-w-md w-full">
-        <h2 class="text-xl font-bold mb-4">{{ isEditing ? 'Edit Station' : 'Add Station' }}</h2>
-        <form @submit.prevent="handleSubmit">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Name</label>
-              <input
-                v-model="form.name"
-                type="text"
-                required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-white"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Status</label>
-              <select
-                v-model="form.status"
-                required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-white"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Connector Type</label>
-              <select
-                v-model="form.connectorType"
-                required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-white"
-              >
-                <option value="Type 1">Type 1</option>
-                <option value="Type 2">Type 2</option>
-                <option value="CCS">CCS</option>
-                <option value="CHAdeMO">CHAdeMO</option>
-                <option value="Tesla">Tesla</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Power Output (kW)</label>
-              <input
-                v-model.number="form.powerOutput"
-                type="number"
-                min="0"
-                required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-white"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Latitude</label>
-              <input
-                v-model.number="form.location.latitude"
-                type="number"
-                step="any"
-                min="-90"
-                max="90"
-                required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-white"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Longitude</label>
-              <input
-                v-model.number="form.location.longitude"
-                type="number"
-                step="any"
-                min="-180"
-                max="180"
-                required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-white"
-              />
-            </div>
-          </div>
-          <div class="mt-6 flex justify-end space-x-3">
-            <button
-              type="button"
-              @click="closeModal"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              {{ isEditing ? 'Update' : 'Create' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div>
+          <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+          <input
+            type="text"
+            id="location"
+            v-model="form.location"
+            required
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+          />
+        </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full">
-        <h2 class="text-xl font-bold mb-4">Confirm Delete</h2>
-        <p class="mb-6">Are you sure you want to delete this station? This action cannot be undone.</p>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label for="connectorType" class="block text-sm font-medium text-gray-700">Connector Type</label>
+            <select
+              id="connectorType"
+              v-model="form.connectorType"
+              required
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
+            >
+              <option value="Type 2">Type 2</option>
+              <option value="CCS">CCS</option>
+              <option value="CHAdeMO">CHAdeMO</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="powerOutput" class="block text-sm font-medium text-gray-700">Power Output (kW)</label>
+            <input
+              type="number"
+              id="powerOutput"
+              v-model="form.powerOutput"
+              required
+              min="0"
+              step="0.1"
+              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+          <select
+            id="status"
+            v-model="form.status"
+            required
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
+          >
+            <option value="available">Available</option>
+            <option value="in_use">In Use</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+
         <div class="flex justify-end space-x-3">
           <button
-            @click="showDeleteModal = false"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            type="button"
+            @click="closeModal"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             Cancel
           </button>
           <button
-            @click="handleDelete"
-            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            type="submit"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
-            Delete
+            {{ isEditing ? 'Update' : 'Create' }}
           </button>
         </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
@@ -319,6 +265,8 @@ import { useStationStore } from '../stores/station'
 import { useAuthStore } from '../stores/auth'
 import StationMap from '../components/StationMap.vue'
 import { useToast } from 'vue-toastification'
+import { PlusIcon } from '@heroicons/vue/24/outline'
+import Modal from '../components/Modal.vue'
 
 const stationStore = useStationStore()
 const authStore = useAuthStore()
@@ -534,4 +482,24 @@ watch(filters, async (newFilters) => {
     toast.error('An error occurred while fetching stations')
   }
 }, { deep: true })
-</script> 
+</script>
+
+<style scoped>
+/* Add responsive styles */
+@media (max-width: 640px) {
+  .table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  td, th {
+    min-width: 120px;
+  }
+  
+  td:first-child, th:first-child {
+    min-width: 200px;
+  }
+}
+</style> 

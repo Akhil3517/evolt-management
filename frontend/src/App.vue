@@ -1,8 +1,9 @@
 <script setup>
 import { useAuthStore } from './stores/auth'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const authStore = useAuthStore()
+const isMobileMenuOpen = ref(false)
 
 onMounted(async () => {
   if (authStore.token) {
@@ -22,6 +23,7 @@ onMounted(async () => {
                 EVolt
               </router-link>
             </div>
+            <!-- Desktop Navigation -->
             <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
               <router-link
                 to="/"
@@ -39,6 +41,8 @@ onMounted(async () => {
               </router-link>
             </div>
           </div>
+
+          <!-- Desktop User Menu -->
           <div class="hidden sm:ml-6 sm:flex sm:items-center">
             <div class="ml-3 relative">
               <div class="flex items-center space-x-4">
@@ -52,11 +56,86 @@ onMounted(async () => {
               </div>
             </div>
           </div>
+
+          <!-- Mobile menu button -->
+          <div class="flex items-center sm:hidden">
+            <button
+              @click="isMobileMenuOpen = !isMobileMenuOpen"
+              class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+            >
+              <span class="sr-only">Open main menu</span>
+              <!-- Icon when menu is closed -->
+              <svg
+                v-if="!isMobileMenuOpen"
+                class="block h-6 w-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <!-- Icon when menu is open -->
+              <svg
+                v-else
+                class="block h-6 w-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div v-if="isMobileMenuOpen" class="sm:hidden">
+        <div class="pt-2 pb-3 space-y-1">
+          <router-link
+            to="/"
+            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+            :class="[$route.path === '/' ? 'border-primary-500 text-primary-700 bg-primary-50' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700']"
+          >
+            Home
+          </router-link>
+          <router-link
+            to="/stations"
+            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+            :class="[$route.path === '/stations' ? 'border-primary-500 text-primary-700 bg-primary-50' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700']"
+          >
+            Stations
+          </router-link>
+        </div>
+        <div class="pt-4 pb-3 border-t border-gray-200">
+          <div class="flex items-center px-4">
+            <div class="flex-shrink-0">
+              <div class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                <span class="text-primary-600 font-medium text-lg">
+                  {{ authStore.user?.name?.charAt(0)?.toUpperCase() }}
+                </span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <div class="text-base font-medium text-gray-800">{{ authStore.user?.name }}</div>
+              <div class="text-sm font-medium text-gray-500">{{ authStore.user?.email }}</div>
+            </div>
+          </div>
+          <div class="mt-3 space-y-1">
+            <button
+              @click="authStore.logout"
+              class="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <router-view></router-view>
     </main>
   </div>
@@ -82,5 +161,18 @@ onMounted(async () => {
 
 .Vue-Toastification__toast--success.delete-toast .Vue-Toastification__toast-body {
   color: #991B1B !important;
+}
+
+/* Mobile menu transitions */
+.sm\:hidden {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Ensure content is visible on mobile */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 </style>
