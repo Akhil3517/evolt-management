@@ -12,6 +12,15 @@ const API_URL = import.meta.env.VITE_API_URL?.startsWith('http')
 axios.defaults.withCredentials = true
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
+// Create axios instance with base URL
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
@@ -26,7 +35,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(email, password) {
       try {
-        const response = await axios.post(`${API_URL}/auth/login`, {
+        const response = await api.post('/auth/login', {
           email,
           password,
         })
@@ -34,6 +43,9 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.data.token
         this.user = response.data.user
         localStorage.setItem('token', response.data.token)
+        
+        // Set the token in axios headers for future requests
+        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`
 
         return { success: true }
       } catch (error) {

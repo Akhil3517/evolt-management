@@ -6,6 +6,15 @@ const API_URL = import.meta.env.VITE_API_URL?.startsWith('http')
   ? import.meta.env.VITE_API_URL 
   : `https://${import.meta.env.VITE_API_URL}`
 
+// Create axios instance with base URL
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
 export const useStationStore = defineStore('station', {
   state: () => ({
     stations: [],
@@ -29,7 +38,7 @@ export const useStationStore = defineStore('station', {
         if (filters.connectorType) params.append('connectorType', filters.connectorType)
         if (filters.minPower) params.append('minPower', filters.minPower)
 
-        const response = await axios.get(`${API_URL}/stations?${params.toString()}`)
+        const response = await api.get(`/stations?${params.toString()}`)
         this.stations = response.data
         return { success: true }
       } catch (error) {
@@ -47,7 +56,7 @@ export const useStationStore = defineStore('station', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/stations/${id}`)
+        const response = await api.get(`/stations/${id}`)
         this.currentStation = response.data
         return { success: true }
       } catch (error) {
@@ -65,7 +74,7 @@ export const useStationStore = defineStore('station', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/stations`, stationData, {
+        const response = await api.post('/stations', stationData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -87,7 +96,7 @@ export const useStationStore = defineStore('station', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.put(`${API_URL}/stations/${id}`, stationData, {
+        const response = await api.put(`/stations/${id}`, stationData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -115,7 +124,7 @@ export const useStationStore = defineStore('station', {
       this.loading = true
       this.error = null
       try {
-        await axios.delete(`${API_URL}/stations/${id}`, {
+        await api.delete(`/stations/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
