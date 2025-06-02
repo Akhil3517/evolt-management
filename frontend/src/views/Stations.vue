@@ -102,7 +102,10 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="station in stationStore.stations" :key="station._id">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ station.name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              {{ station.name }}
+              <span class="text-xs text-gray-500 ml-2">by {{ station.createdBy?.name || 'Unknown' }}</span>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               <span
                 :class="{
@@ -121,14 +124,14 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button
-                v-if="canModifyStation(station)"
+                v-if="station.canModify"
                 @click="openEditModal(station)"
                 class="text-primary-600 hover:text-primary-900 mr-4"
               >
                 Edit
               </button>
               <button
-                v-if="canModifyStation(station)"
+                v-if="station.canModify"
                 @click="confirmDelete(station)"
                 class="text-red-600 hover:text-red-900"
               >

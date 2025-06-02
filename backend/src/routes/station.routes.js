@@ -129,15 +129,25 @@ router.post('/', auth, validateStation, async (req, res) => {
 router.get('/', auth, async (req, res) => {
   try {
     const { status, connectorType, minPower } = req.query;
-    const query = { createdBy: req.user._id };
+    const query = {};
 
     if (status) query.status = status;
     if (connectorType) query.connectorType = connectorType;
     if (minPower) query.powerOutput = { $gte: Number(minPower) };
 
-    const stations = await Station.find(query);
-    res.json(stations);
+    const stations = await Station.find(query)
+      .populate('createdBy', 'name email') // Add creator info
+      .lean(); // Convert to plain objects for easier manipulation
+
+    // Add canModify flag to each station
+    const stationsWithAccess = stations.map(station => ({
+      ...station,
+      canModify: req.user.role === 'admin' || station.createdBy._id.toString() === req.user._id.toString()
+    }));
+
+    res.json(stationsWithAccess);
   } catch (error) {
+    console.error('Error fetching stations:', error);
     res.status(500).json({ message: 'Error fetching stations' });
   }
 });
