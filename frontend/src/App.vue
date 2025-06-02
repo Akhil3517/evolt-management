@@ -14,7 +14,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-gray-100">
-    <nav v-if="authStore.isAuthenticated" class="bg-white shadow-sm fixed w-full top-0 z-50">
+    <nav v-if="authStore.isAuthenticated" class="bg-white shadow-sm border-b border-gray-200 fixed w-full top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex">
@@ -57,7 +57,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <!-- Mobile menu button -->
+          <!-- Mobile menu button (always visible on mobile) -->
           <div class="flex items-center sm:hidden">
             <button
               @click="isMobileMenuOpen = !isMobileMenuOpen"
@@ -91,13 +91,14 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Mobile menu -->
-      <div v-if="isMobileMenuOpen" class="sm:hidden absolute w-full bg-white shadow-lg">
+      <!-- Mobile menu (absolute, full width, high z-index) -->
+      <div v-if="isMobileMenuOpen" class="sm:hidden absolute w-full bg-white shadow-lg border-b border-gray-200 z-50">
         <div class="pt-2 pb-3 space-y-1">
           <router-link
             to="/"
             class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
             :class="[$route.path === '/' ? 'border-primary-500 text-primary-700 bg-primary-50' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700']"
+            @click="isMobileMenuOpen = false"
           >
             Home
           </router-link>
@@ -105,6 +106,7 @@ onMounted(async () => {
             to="/stations"
             class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
             :class="[$route.path === '/stations' ? 'border-primary-500 text-primary-700 bg-primary-50' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700']"
+            @click="isMobileMenuOpen = false"
           >
             Stations
           </router-link>
