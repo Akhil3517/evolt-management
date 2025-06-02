@@ -121,17 +121,20 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button
+                v-if="canModifyStation(station)"
                 @click="openEditModal(station)"
                 class="text-primary-600 hover:text-primary-900 mr-4"
               >
                 Edit
               </button>
               <button
+                v-if="canModifyStation(station)"
                 @click="confirmDelete(station)"
                 class="text-red-600 hover:text-red-900"
               >
                 Delete
               </button>
+              <span v-else class="text-gray-400">View only</span>
             </td>
           </tr>
         </tbody>
@@ -308,13 +311,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useStationStore } from '../stores/station'
+import { useAuthStore } from '../stores/auth'
 import StationMap from '../components/StationMap.vue'
 import { useToast } from 'vue-toastification'
 
 const stationStore = useStationStore()
+const authStore = useAuthStore()
 const toast = useToast()
+
+// Computed property to check if user is admin
+const isAdmin = computed(() => authStore.userRole === 'admin')
+
+// Computed property to check if user can modify a station
+const canModifyStation = (station) => {
+  return isAdmin.value || station.createdBy === authStore.user?.id
+}
 
 // State
 const viewMode = ref('table')

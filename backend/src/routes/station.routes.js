@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const Station = require('../models/station.model');
 const { auth } = require('../middleware/auth.middleware');
 const router = express.Router();
+
 const validateStation = [
   body('name').trim().notEmpty().withMessage('Station name is required'),
   body('location.latitude')
@@ -21,6 +22,26 @@ const validateStation = [
     .isIn(['Type 1', 'Type 2', 'CCS', 'CHAdeMO', 'Tesla'])
     .withMessage('Invalid connector type'),
 ];
+
+// Middleware to check if user has access to a station
+const checkStationAccess = async (req, res, next) => {
+  try {
+    const station = await Station.findById(req.params.id);
+    if (!station) {
+      return res.status(404).json({ message: 'Station not found' });
+    }
+
+    // Allow access if user is admin or created the station
+    if (req.user.role === 'admin' || station.createdBy.toString() === req.user._id.toString()) {
+      req.station = station;
+      next();
+    } else {
+      res.status(403).json({ message: 'Access denied. You do not have permission to modify this station.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error checking station access' });
+  }
+};
 
 /**
  * @swagger
@@ -146,7 +167,7 @@ router.get('/', auth, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth, async (req, res) => {
   try {
     const station = await Station.findById(req.params.id);
     if (!station) {
@@ -197,20 +218,14 @@ router.get('/:id', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put('/:id', auth, validateStation, async (req, res) => {
+router.put('/:id', auth, checkStationAccess, validateStation, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const station = await Station.findById(req.params.id);
-    if (!station) {
-      return res.status(404).json({ message: 'Station not found' });
-    }
-    if (station.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this station' });
-    }
 
+    const station = req.station;
     Object.assign(station, req.body);
     await station.save();
     res.json(station);
@@ -246,19 +261,9 @@ router.put('/:id', auth, validateStation, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, checkStationAccess, async (req, res) => {
   try {
-    const station = await Station.findById(req.params.id);
-    if (!station) {
-      return res.status(404).json({ message: 'Station not found' });
-    }
-
-    // Check if user is the creator of the station
-    if (station.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to delete this station' });
-    }
-
-    await station.deleteOne();
+    await req.station.remove();
     res.json({ message: 'Station deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting station' });
