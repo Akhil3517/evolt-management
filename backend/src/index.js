@@ -31,6 +31,31 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working' });
 });
 
+// Add a database test route
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const dbState = mongoose.connection.readyState;
+    const dbStateMap = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+    
+    res.json({
+      message: 'Database connection test',
+      status: dbStateMap[dbState] || 'unknown',
+      readyState: dbState,
+      isConnected: dbState === 1
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Database test failed',
+      error: error.message
+    });
+  }
+});
+
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -144,15 +169,42 @@ app.use('/api/stations', stationRoutes);
 app.use(errorHandler);
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  })
   .then(() => {
-    console.log('Connected to MongoDB');
+    console.log('Connected to MongoDB successfully');
+    console.log('Database URI:', process.env.MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//****:****@')); // Hide credentials in logs
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
+      console.log('Environment:', process.env.NODE_ENV);
     });
   })
   .catch((err) => {
-    console.error('MongoDB connection error:', err);
+    console.error('MongoDB connection error details:', {
+      name: err.name,
+      message: err.message,
+      code: err.code,
+      codeName: err.codeName
+    });
     process.exit(1);
-  }); 
+  });
+
+// Add connection error handler
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
+
+// Add disconnection handler
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
+});
+
+// Add reconnection handler
+mongoose.connection.on('reconnected', () => {
+  console.log('MongoDB reconnected');
+}); 
