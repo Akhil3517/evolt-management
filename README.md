@@ -1,136 +1,125 @@
-# EV Charging Station Management System
+# EVolt Management System
 
-A full-stack application for managing electric vehicle charging stations, built with Node.js, Express, MongoDB, and Vue.js.
+A comprehensive charging station management system for electric vehicle charging infrastructure.
 
 ## Features
 
-- User authentication and authorization (JWT)
-- Charging station management (CRUD operations)
-- Interactive map view (Leaflet + OpenStreetMap)
-- Status tracking
-- Responsive design
+### Authentication & User Management
+- User registration and login
+- Role-based access control (User and Admin roles)
+- Secure JWT-based authentication
+- Protected routes and API endpoints
 
-## Tech Stack
+### Station Management
+- View all charging stations
+- Create new charging stations
+- Edit and delete stations (with permission)
+- Filter stations by status, connector type, and power output
+- Interactive map view for station locations
+
+### Access Control
+- **View Access**: All authenticated users can view all stations
+- **Modification Access**: 
+  - Users can only modify stations they created
+  - Admins can modify all stations
+  - Other users can view but not modify stations they didn't create
+
+## User Roles & Permissions
+
+### Regular Users
+- Can view all stations
+- Can create new stations
+- Can modify only their own stations
+- Can delete only their own stations
+
+### Admin Users
+- Can view all stations
+- Can create new stations
+- Can modify any station
+- Can delete any station
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `GET /api/auth/me` - Get current user profile
+
+### Stations
+- `GET /api/stations` - Get all stations (with filters)
+- `GET /api/stations/:id` - Get single station
+- `POST /api/stations` - Create new station
+- `PUT /api/stations/:id` - Update station (requires permission)
+- `DELETE /api/stations/:id` - Delete station (requires permission)
+
+## Technology Stack
+
+### Frontend
+- Vue.js 3
+- Pinia for state management
+- Tailwind CSS for styling
+- Leaflet for maps
+- Axios for API requests
 
 ### Backend
 - Node.js with Express
 - MongoDB with Mongoose
-- JWT authentication
-- RESTful API
-- Swagger for API documentation
+- JWT for authentication
+- Express Validator for input validation
 
-### Frontend
-- Vue.js 3 with Composition API
-- Vite for build tooling
-- Pinia for state management
-- Vue Router for navigation
-- Tailwind CSS for styling
-- Leaflet with OpenStreetMap for maps
+## Getting Started
 
-## Prerequisites
-
-- Node.js 16.x or later
-- npm 7.x or later
-- MongoDB 4.x or later
-
-## Setup
-
-1. Clone the repository:
+1. Clone the repository
+2. Install dependencies:
    ```bash
-   git clone <repository-url>
-   cd evolt
-   ```
-
-2. Install dependencies for all packages:
-   ```bash
+   # Frontend
+   cd frontend
    npm install
-   cd backend && npm install
-   cd ../frontend && npm install
+
+   # Backend
+   cd backend
+   npm install
    ```
 
 3. Set up environment variables:
-   - Create `.env` files in both `backend` and `frontend` directories
-   - Ensure the following variables are set in `backend/.env`:
-     - `MONGODB_URI=<your-mongodb-uri>`
-     - `JWT_SECRET=<your-jwt-secret>`
-     - `PORT=3000` (optional, defaults to 3000)
-   - The frontend may not require any special environment variables for development
+   ```env
+   # Frontend (.env)
+   VITE_API_URL=your_api_url
 
-4. Start the development servers (in two terminals):
+   # Backend (.env)
+   MONGODB_URI=your_mongodb_uri
+   JWT_SECRET=your_jwt_secret
+   ```
+
+4. Run the development servers:
    ```bash
-   # Terminal 1
-   cd backend
-   npm start
-
-   # Terminal 2
+   # Frontend
    cd frontend
+   npm run dev
+
+   # Backend
+   cd backend
    npm run dev
    ```
 
-## Project Structure
+## Security Features
 
-```
-evolt/
-├── backend/           # Node.js/Express backend
-│   ├── src/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── middleware/
-│   │   └── index.js
-│   └── package.json
-├── frontend/         # Vue.js frontend
-│   ├── src/
-│   │   ├── components/
-│   │   ├── views/
-│   │   ├── router/
-│   │   └── App.vue
-│   └── package.json
-└── README.md
-```
-
-## API Documentation
-
-The API documentation is available at `/api-docs` when running the backend server (Swagger UI).
-
-### Main Endpoints
-
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `GET /api/stations` - Get all stations (supports filtering)
-- `POST /api/stations` - Create a new station (JWT required)
-- `PUT /api/stations/:id` - Update a station (JWT required)
-- `DELETE /api/stations/:id` - Delete a station (JWT required)
-
-> **Note:** Some endpoints require a JWT token in the `Authorization` header as `Bearer <token>`.
-
-## Development
-
-- Backend runs on `http://localhost:3000`
-- Frontend runs on `http://localhost:5173`
-- API is available at `http://localhost:3000/api`
-
-## Deployment
-
-1. Build the frontend:
-   ```bash
-   cd frontend
-   npm run build
-   ```
-
-2. Set up environment variables for production
-
-3. Deploy the backend to your hosting service
-
-4. Deploy the frontend build to your static hosting service
+- JWT-based authentication
+- Password hashing with bcrypt
+- Input validation and sanitization
+- Role-based access control
+- Protected API endpoints
+- CORS configuration
+- Error handling middleware
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create your feature branch
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License - see the LICENSE file for details. 

@@ -5,6 +5,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const path = require('path');
 
 const authRoutes = require('./routes/auth.routes');
 const stationRoutes = require('./routes/station.routes');
@@ -77,8 +78,10 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${process.env.PORT || 3000}`,
-        description: 'Development server'
+        url: process.env.NODE_ENV === 'production' 
+          ? 'https://evolt-management.vercel.app/api'
+          : `http://localhost:${process.env.PORT || 3000}`,
+        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server'
       }
     ],
     components: {
@@ -158,14 +161,31 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
+// Serve Swagger UI with custom options
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: "EVolt API Documentation",
-  customfavIcon: "/favicon.ico"
+  customfavIcon: "/favicon.ico",
+  swaggerOptions: {
+    persistAuthorization: true,
+    docExpansion: 'list',
+    filter: true,
+    showCommonExtensions: true,
+    syntaxHighlight: {
+      activated: true,
+      theme: "monokai"
+    }
+  }
 }));
+
+// Serve static files for Swagger UI
+app.use('/swagger-ui', express.static(path.join(__dirname, '../node_modules/swagger-ui-dist')));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/stations', stationRoutes);
 
+// Error handling middleware
 app.use(errorHandler);
 
 mongoose
@@ -182,6 +202,7 @@ mongoose
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
       console.log('Environment:', process.env.NODE_ENV);
+      console.log('Swagger documentation available at:', `http://localhost:${PORT}/api-docs`);
     });
   })
   .catch((err) => {
