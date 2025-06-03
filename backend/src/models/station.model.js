@@ -47,10 +47,6 @@ const stationSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// Add index for location for geospatial queries
 stationSchema.index({ location: '2dsphere' });
-
 const Station = mongoose.model('Station', stationSchema);
-
 module.exports = Station; 

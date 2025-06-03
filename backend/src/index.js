@@ -13,7 +13,6 @@ const { errorHandler } = require('./middleware/error.middleware');
 
 const app = express();
 
-// CORS configuration
 const corsOptions = {
   origin: ['https://evolt-management.vercel.app', 'https://evolt-management-cbj1.vercel.app', 'http://localhost:5173'],
   credentials: true,
@@ -24,15 +23,12 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Add error handling for CORS preflight
 app.options('*', cors(corsOptions));
 
-// Add a test route to verify API is working
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working' });
 });
 
-// Add a database test route
 app.get('/api/test-db', async (req, res) => {
   try {
     const dbState = mongoose.connection.readyState;
@@ -171,13 +167,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
   }
 }));
 
-// Serve static files for Swagger UI
 app.use('/swagger-ui', express.static(path.join(__dirname, '../node_modules/swagger-ui-dist')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/stations', stationRoutes);
 
-// Error handling middleware
 app.use(errorHandler);
 
 mongoose
@@ -207,17 +201,14 @@ mongoose
     process.exit(1);
   });
 
-// Add connection error handler
 mongoose.connection.on('error', (err) => {
   console.error('MongoDB connection error:', err);
 });
 
-// Add disconnection handler
 mongoose.connection.on('disconnected', () => {
   console.log('MongoDB disconnected');
 });
 
-// Add reconnection handler
 mongoose.connection.on('reconnected', () => {
   console.log('MongoDB reconnected');
 }); 
