@@ -3,37 +3,40 @@
     <!-- Header with Add Station button and View Toggle -->
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold text-gray-900">Charging Stations</h1>
-      <div class="flex items-center space-x-4">
-        <div class="flex rounded-md shadow-sm">
+      <div class="flex flex-col items-end space-y-2">
+        <span class="text-xs text-gray-500">You can add a station only when you are in table view.</span>
+        <div class="flex items-center space-x-4">
+          <div class="flex rounded-md shadow-sm">
+            <button
+              @click="viewMode = 'table'"
+              :class="[
+                'px-4 py-2 text-sm font-medium rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500',
+                viewMode === 'table'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
+              ]"
+            >
+              Table
+            </button>
+            <button
+              @click="viewMode = 'map'"
+              :class="[
+                'px-4 py-2 text-sm font-medium rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary-500',
+                viewMode === 'map'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
+              ]"
+            >
+              Map
+            </button>
+          </div>
           <button
-            @click="viewMode = 'table'"
-            :class="[
-              'px-4 py-2 text-sm font-medium rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500',
-              viewMode === 'table'
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
-            ]"
+            @click="startSelectingCoordinates"
+            class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
-            Table
-          </button>
-          <button
-            @click="viewMode = 'map'"
-            :class="[
-              'px-4 py-2 text-sm font-medium rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary-500',
-              viewMode === 'map'
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
-            ]"
-          >
-            Map
+            Add Station
           </button>
         </div>
-        <button
-          @click="startSelectingCoordinates"
-          class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
-          Add Station
-        </button>
       </div>
     </div>
 
@@ -142,6 +145,9 @@
           </tr>
         </tbody>
       </table>
+      <div class="px-6 py-4 bg-gray-50 text-sm text-gray-500 border-t border-gray-200">
+        Click on "Add Station" if you are in table view only
+      </div>
     </div>
 
     <!-- Map View -->
